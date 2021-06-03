@@ -2,10 +2,10 @@ build_root:
   image_stream_tag:
     name: verification-tests
     namespace: ci
-    tag: centos
+    tag: cucushift
 images:
 - dockerfile_path: tools/openshift-ci/Dockerfile.centos
-  to: centos
+  to: cucushift
 promotion:
   name: verification-tests
   namespace: ci
@@ -15,8 +15,34 @@ resources:
       cpu: 100m
       memory: 200Mi
 tag_specification:
-  name: "4.1"
+  name: "4.8"
   namespace: ocp
+tests:
+- as: e2e
+  steps:
+    cluster_profile: aws
+    test:
+    - as: normal
+      commands: cucumber -p junit --tags ~@admin --tags ~@destructive
+      from: cucushift
+      resources:
+        requests:
+          cpu: "2"
+          memory: 4Gi
+    - as: admin
+      commands: cucumber -p junit --tags @admin --tags ~@destructive
+      from: cucushift
+      resources:
+        requests:
+          cpu: "1"
+          memory: 2Gi
+    - as: destructive
+      commands: cucumber -p junit --tags @destructive
+      from: cucushift
+      resources:
+        requests:
+          cpu: "1"
+          memory: 2Gi
 zz_generated_metadata:
   branch: master
   org: openshift
